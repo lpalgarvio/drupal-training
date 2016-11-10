@@ -1,0 +1,176 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function dummy_permission() {
+  return array(
+    'access dummy' => array(
+      'description' => t('Access the dummy module.'),
+      'title' => t('Access dummy'),
+      'restrict access' => TRUE,
+    ),
+    'administer dummy' => array(
+      'description' => t('Administer the dummy module.'),
+      'title' => t('Administer dummy'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function dummy_help($section) {
+  switch ($section) {
+    case 'dummy/test1':
+      return '<p>' . t('Dont touch any buttons!') . '</p>';
+    case 'dummy/test2':
+      $api = variable_get('devel_api_url', 'api.drupal.org');
+      return '<p>' . t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that are too long can slow down your pages.', array('@variable-get-doc' => "http://$api/api/HEAD/function/variable_get", '@variable-set-doc' => "http://$api/api/HEAD/function/variable_set")) . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function dummy_menu() {
+  $items = array();
+  
+  $items['dummy'] = array(
+    'title' => 'Dummy',
+    'description' => 'Dummy',
+    'access arguments' => array('access dummy'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dummy.pages.inc',
+  );
+  
+  $items['dummy/test1'] = array(
+    'title' => 'Test 1',
+    'description' => 'Dummy test #1',
+    'access arguments' => array('access dummy'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dummy_test1_form'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dummy.pages.inc',
+  );
+
+  $items['dummy/test2'] = array(
+    'title' => 'Test 2',
+    'description' => 'Dummy test #2',
+    'access arguments' => array('access dummy'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dummy_test2_form'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'dummy.pages.inc',
+  );
+  
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function dummy_theme() {
+  return array(
+    'dummy_test2_form_theme' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'dummy.pages.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function dummy_block_info() {
+  $blocks = array();
+  
+  $blocks['dummy_block'] = array(
+    'info' => t('Dummy block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function dummy_block_configure($delta) {
+  $form = array();
+  
+  if ($delta == 'dummy_block') {
+    $form['dummy_api_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('API url'),
+      '#default_value' => variable_get('dummy_api_url', 'api.drupal.org');
+      '#size' => '10',
+      '#maxlength' => '20',
+    );
+  }
+  
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function dummy_block_save($delta, $edit = array()) {
+  $delta = array();
+  
+  if ($delta == 'dummy_block') {
+    variable_set('dummy_api_url', $edit['dummy_api_url']);
+  }
+  
+  return $delta;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function dummy_block_view($delta) {
+  $block = array();
+  
+  switch ($delta) {
+    case 'dummy_block':
+      $block = dummy_block_api_url();
+      break;
+  }
+  
+  return $block;
+}
+
+/**
+ * Provides the API url block.
+ */
+function dummy_block_api_url() {
+  $block = array();
+  
+  $block['subject'] = t('API url');
+  $build['dummy_links'] = array('#theme' => 'links', '#links' => array());
+  $build['dummy_form'] = drupal_get_form('dummy_switch_api_url_form');
+  $block['content'] = $build;
+  }
+  
+  return $block;
+}
+
+/**
+ * Provides the API url form.
+ */
+function dummy_switch_api_url_form() {
+  $form = array();
+  
+  $form['dummy_api_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API url'),
+    '#default_value' => variable_get('dummy_api_url', 'api.drupal.org');
+    '#size' => '10',
+    '#maxlength' => '20',
+  );
+  
+  return $form;
+}
